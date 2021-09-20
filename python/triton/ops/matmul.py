@@ -127,5 +127,31 @@ class _matmul(torch.autograd.Function):
     def forward(ctx, a, b):
         return _matmul._call(a, b)
 
+    @staticmethod
+    def analysis(M, N, K, config, ms, dtype, device):
+        BLOCK_SIZE_M = config.meta['BLOCK_SIZE_M']
+        BLOCK_SIZE_N = config.meta['BLOCK_SIZE_N']
+        BLOCK_SIZE_K = config.meta['BLOCK_SIZE_K']
+        if 'SPLIT_K' in config.meta:
+            SPLIT_K = config.meta['SPLIT_K']
+        else:
+            SPLIT_K = 1
+
+        elem_sz = 2
+
+        op = 2*M*N*K
+        num_bytes = M/BLOCK_SIZE_M * N*K * elem_sz + \
+                    N/BLOCK_SIZE_N * M*K * elem_sz + \
+                    SPLIT_K * M*N * elem_sz
+
+        ops = op * 1e-12 / (ms*1e-3) # TOPS
+        bw = num_bytes * 1e-9 / (ms*1e-3) # GB/s
+
+        # print(f'ms: {ms:.2f}')
+        print(f'achieved arithmetic throughput: {ops:.3f} TOPS')
+        print(f'achieve memory throuhput: {bw:.2f} GB/s')
+
 
 matmul = _matmul.apply
+# Helper
+matmul_analyze = _matmul.analysis

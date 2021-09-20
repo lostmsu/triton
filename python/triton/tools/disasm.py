@@ -61,7 +61,7 @@ def processSassLines(fline, sline, labels):
     return (f'{ctrl}', f'{asm}')
 
 
-def extract(file_path, fun):
+def extract(file_path, fun=None):
     if fun == None:
         sass_str = subprocess.check_output(["cuobjdump", "-sass", file_path])
     else:

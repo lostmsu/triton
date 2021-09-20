@@ -657,6 +657,7 @@ class Autotuner:
                 for i in self.reset_idx:
                     args[i].zero_()
             self.hook = _hook
+        # workspace
 
     def _bench(self, *args, config, **meta):
         # check for conflicts, i.e. meta-parameters both provided
@@ -680,11 +681,14 @@ class Autotuner:
             if key not in self.cache:
                 timings = {config: self._bench(*args, config=config, **meta) \
                         for config in self.configs}
+                # cache timings
+                self.timings = timings
                 self.cache[key] = builtins.min(timings, key=timings.get)
                 self.hook(args)
             config = self.cache[key]
         else:
             config = self.configs[0]
+        self.best_config = config
         return self.kernel(*args, num_warps=config.num_warps, num_stages=config.num_stages, **meta, **config.meta)
 
 
